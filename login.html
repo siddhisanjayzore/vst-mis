@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - VST Tillers Tractors MIS</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect fill='%232d7a2d' width='32' height='32' rx='4'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif'>V</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="auth-pages.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <span class="auth-logo">VST</span>
+      <h1>Login to VST MIS</h1>
+      <p class="auth-subtitle">Management Information System</p>
+    </div>
+    <form id="formLogin" class="auth-form">
+      <div class="form-group">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required placeholder="your@gmail.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">Login</button>
+      </div>
+      <p class="auth-switch">
+        Don't have an account? <a href="register.html">Register here</a>
+      </p>
+    </form>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    document.getElementById('formLogin').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var email = document.getElementById('loginEmail').value.trim();
+      var password = document.getElementById('loginPassword').value;
+      var btn = document.getElementById('loginSubmitBtn');
+      if (!email || !password) {
+        authToast('Please enter email and password', 'error');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Logging in...';
+      try {
+        var res = await fetch(AUTH_API_BASE + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: password })
+        });
+        var data = {};
+        try { data = await res.json(); } catch (_) { data = { error: 'Invalid response from server' }; }
+        if (res.ok) {
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          authToast('Login successful!');
+          window.location.href = 'index.html';
+          return;
+        }
+        authToast(data.error || 'Login failed', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      } catch (err) {
+        authToast('Cannot connect to server. Make sure it is running at ' + AUTH_API_BASE, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    });
+  </script>
+</body>
+</html>

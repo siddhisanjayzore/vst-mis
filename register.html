@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - VST Tillers Tractors MIS</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect fill='%232d7a2d' width='32' height='32' rx='4'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif'>V</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="auth-pages.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <span class="auth-logo">VST</span>
+      <h1>Create Account</h1>
+      <p class="auth-subtitle">VST Tillers Tractors MIS</p>
+    </div>
+    <form id="formRegister" class="auth-form">
+      <div class="form-group">
+        <label for="registerName">Full Name</label>
+        <input type="text" id="registerName" required placeholder="Your name" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label for="registerEmail">Email</label>
+        <input type="email" id="registerEmail" required placeholder="your@gmail.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="registerPassword">Password</label>
+        <input type="password" id="registerPassword" required placeholder="Min 6 characters" minlength="6" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label for="registerPasswordConfirm">Confirm Password</label>
+        <input type="password" id="registerPasswordConfirm" required placeholder="Re-enter password" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-block" id="registerSubmitBtn">Register</button>
+      </div>
+      <p class="auth-switch">
+        Already have an account? <a href="login.html">Login here</a>
+      </p>
+    </form>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    document.getElementById('formRegister').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('registerName').value.trim();
+      const email = document.getElementById('registerEmail').value.trim();
+      const password = document.getElementById('registerPassword').value;
+      const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+      const btn = document.getElementById('registerSubmitBtn');
+
+      if (!name) { authToast('Please enter your name', 'error'); return; }
+      if (!email) { authToast('Please enter your email', 'error'); return; }
+      if (!email.includes('@')) { authToast('Please enter a valid email', 'error'); return; }
+      if (!password) { authToast('Please enter a password', 'error'); return; }
+      if (password.length < 6) { authToast('Password must be at least 6 characters', 'error'); return; }
+      if (password !== passwordConfirm) { authToast('Passwords do not match', 'error'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Registering...';
+      try {
+        const res = await fetch(AUTH_API_BASE + '/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        var data = {};
+        try { data = await res.json(); } catch (_) { data = { error: 'Invalid response from server' }; }
+        if (res.ok) {
+          authToast('Registration successful! Redirecting to login...');
+          window.location.href = 'login.html';
+          return;
+        }
+        authToast(data.error || 'Registration failed', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Register';
+      } catch (err) {
+        authToast('Cannot connect to server. Make sure it is running at ' + AUTH_API_BASE, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Register';
+      }
+    });
+  </script>
+</body>
+</html>

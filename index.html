@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VST Tillers Tractors - Management Information System</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect fill='%232d7a2d' width='32' height='32' rx='4'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif'>V</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">
+        <span class="logo-icon">VST</span>
+        <span class="logo-text">MIS</span>
+      </div>
+      <nav class="nav">
+        <a href="#" class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" data-page="sales">
+          <span class="nav-icon">🛒</span>
+          <span>Sales & Orders</span>
+        </a>
+        <a href="#" class="nav-item" data-page="inventory">
+          <span class="nav-icon">📦</span>
+          <span>Inventory</span>
+        </a>
+        <a href="#" class="nav-item" data-page="production">
+          <span class="nav-icon">⚙️</span>
+          <span>Production</span>
+        </a>
+        <a href="#" class="nav-item" data-page="dealers">
+          <span class="nav-icon">🏪</span>
+          <span>Dealers</span>
+        </a>
+        <a href="#" class="nav-item" data-page="reports">
+          <span class="nav-icon">📋</span>
+          <span>Reports</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-menu-wrap">
+          <div class="user-menu-trigger" id="userMenuTrigger">
+            <span class="user-avatar">SK</span>
+            <span class="user-name">Admin User</span>
+            <button type="button" class="user-menu-chevron-btn" id="userMenuChevron" aria-haspopup="true" aria-expanded="false" title="Open menu">▼</button>
+          </div>
+          <div class="user-dropdown" id="userDropdown" role="menu" hidden>
+            <button type="button" class="user-dropdown-item" id="userDropdownProfile" role="menuitem">👤 My Profile</button>
+            <button type="button" class="user-dropdown-item" id="userDropdownLogout" role="menuitem">🚪 Logout</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+        <div class="header-actions">
+          <button type="button" class="btn btn-ghost" id="btnRefreshDashboard" title="Refresh">↻ Refresh</button>
+          <span class="date-display" id="dateDisplay"></span>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Dashboard -->
+        <section id="page-dashboard" class="page active">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-label">Total Revenue (₹ Cr)</span>
+              <span class="kpi-value" id="kpiRevenue">--</span>
+              <span class="kpi-trend up">+12.4%</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Units Sold (YTD)</span>
+              <span class="kpi-value" id="kpiUnits">--</span>
+              <span class="kpi-trend up">+8.2%</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Active Dealers</span>
+              <span class="kpi-value" id="kpiDealers">--</span>
+              <span class="kpi-trend neutral">0%</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Production Capacity %</span>
+              <span class="kpi-value" id="kpiCapacity">--</span>
+              <span class="kpi-trend up">+5%</span>
+            </div>
+          </div>
+          <div class="alerts-section" id="dashboardAlerts"></div>
+          <div class="dashboard-charts">
+            <div class="chart-card">
+              <h3>Monthly Sales (Units)</h3>
+              <canvas id="chartSales" width="400" height="200"></canvas>
+            </div>
+            <div class="chart-card">
+              <h3>Product Mix</h3>
+              <canvas id="chartProductMix" width="400" height="200"></canvas>
+            </div>
+          </div>
+          <div class="recent-orders">
+            <h3>Recent Orders</h3>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Dealer</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Amount (₹)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recentOrdersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sales -->
+        <section id="page-sales" class="page">
+          <div class="section-toolbar">
+            <button type="button" class="btn btn-primary" id="btnAddOrder">+ Add Order</button>
+            <input type="search" class="search-input" placeholder="Search orders..." id="salesSearch">
+            <select class="filter-select" id="salesStatusFilter">
+              <option value="">All statuses</option>
+              <option value="Dispatched">Dispatched</option>
+              <option value="Pending">Pending</option>
+              <option value="Delivered">Delivered</option>
+            </select>
+            <button type="button" class="btn btn-secondary" id="btnExportSales">Export CSV</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table sortable" id="salesTable">
+              <thead>
+                <tr>
+                  <th data-sort="id">Order ID</th>
+                  <th data-sort="date">Date</th>
+                  <th data-sort="dealer">Dealer</th>
+                  <th data-sort="product">Product</th>
+                  <th data-sort="qty">Qty</th>
+                  <th data-sort="amount">Amount (₹)</th>
+                  <th data-sort="status">Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="salesTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Inventory -->
+        <section id="page-inventory" class="page">
+          <div class="section-toolbar">
+            <button type="button" class="btn btn-secondary" id="btnExportInventory">Export CSV</button>
+          </div>
+          <div class="inventory-summary">
+            <div class="summary-card">
+              <span class="summary-label">Power Tillers</span>
+              <span class="summary-value" id="invTillers">--</span>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Tractors</span>
+              <span class="summary-value" id="invTractors">--</span>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">Implements</span>
+              <span class="summary-value" id="invImplements">--</span>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table sortable" id="inventoryTable">
+              <thead>
+                <tr>
+                  <th data-sort="sku">SKU</th>
+                  <th data-sort="name">Product Name</th>
+                  <th data-sort="category">Category</th>
+                  <th data-sort="stock">Stock</th>
+                  <th data-sort="reorderLevel">Reorder Level</th>
+                  <th data-sort="status">Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Production -->
+        <section id="page-production" class="page">
+          <div class="production-cards">
+            <div class="prod-card">
+              <h4>Power Tillers Line</h4>
+              <div class="prod-bar">
+                <div class="prod-fill" id="prodTillersBar" style="width: 0%"></div>
+              </div>
+              <span class="prod-stat"><span id="prodTillersPct">0</span>% utilization</span>
+            </div>
+            <div class="prod-card">
+              <h4>Tractors Line</h4>
+              <div class="prod-bar">
+                <div class="prod-fill" id="prodTractorsBar" style="width: 0%"></div>
+              </div>
+              <span class="prod-stat"><span id="prodTractorsPct">0</span>% utilization</span>
+            </div>
+          </div>
+          <h3>Production Schedule (This Month)</h3>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Planned</th>
+                  <th>Produced</th>
+                  <th>Target Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="productionTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Dealers -->
+        <section id="page-dealers" class="page">
+          <div class="section-toolbar">
+            <button type="button" class="btn btn-primary" id="btnAddDealer">+ Add Dealer</button>
+            <input type="search" class="search-input" placeholder="Search dealers..." id="dealersSearch">
+            <select class="filter-select" id="dealersRegionFilter">
+              <option value="">All regions</option>
+              <option value="North">North</option>
+              <option value="South">South</option>
+              <option value="East">East</option>
+              <option value="West">West</option>
+            </select>
+            <button type="button" class="btn btn-secondary" id="btnExportDealers">Export CSV</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table sortable" id="dealersTable">
+              <thead>
+                <tr>
+                  <th data-sort="code">Code</th>
+                  <th data-sort="name">Dealer Name</th>
+                  <th data-sort="region">Region</th>
+                  <th data-sort="city">City</th>
+                  <th data-sort="contact">Contact</th>
+                  <th data-sort="ytdSales">YTD Sales (₹)</th>
+                </tr>
+              </thead>
+              <tbody id="dealersTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Reports -->
+        <section id="page-reports" class="page">
+          <div class="reports-grid">
+            <div class="report-card" data-report="sales-summary">
+              <span class="report-icon">📈</span>
+              <h4>Sales Summary Report</h4>
+              <p>Region-wise & product-wise sales</p>
+            </div>
+            <div class="report-card" data-report="inventory">
+              <span class="report-icon">📦</span>
+              <h4>Inventory Report</h4>
+              <p>Stock levels & reorder status</p>
+            </div>
+            <div class="report-card" data-report="production">
+              <span class="report-icon">⚙️</span>
+              <h4>Production Report</h4>
+              <p>Output vs plan by line</p>
+            </div>
+            <div class="report-card" data-report="dealer-performance">
+              <span class="report-icon">🏆</span>
+              <h4>Dealer Performance</h4>
+              <p>Top dealers by volume & revenue</p>
+            </div>
+          </div>
+          <div class="report-preview" id="reportPreview">
+            <p class="placeholder">Select a report to view preview</p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Modal: Add Order -->
+  <div id="modalOrder" class="modal">
+    <div class="modal-backdrop" data-dismiss="modalOrder"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add New Order</h2>
+        <button type="button" class="modal-close" data-dismiss="modalOrder" aria-label="Close">&times;</button>
+      </div>
+      <form id="formOrder">
+        <div class="form-group">
+          <label for="orderDealer">Dealer</label>
+          <select id="orderDealer" required></select>
+        </div>
+        <div class="form-group">
+          <label for="orderProduct">Product</label>
+          <select id="orderProduct" required></select>
+        </div>
+        <div class="form-group">
+          <label for="orderQty">Quantity</label>
+          <input type="number" id="orderQty" min="1" required>
+        </div>
+        <div class="form-group">
+          <label for="orderStatus">Status</label>
+          <select id="orderStatus">
+            <option value="Pending">Pending</option>
+            <option value="Dispatched">Dispatched</option>
+            <option value="Delivered">Delivered</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <span class="form-hint">Amount: <strong id="orderAmountPreview">₹ 0</strong></span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-dismiss="modalOrder">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Dealer -->
+  <div id="modalDealer" class="modal">
+    <div class="modal-backdrop" data-dismiss="modalDealer"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add New Dealer</h2>
+        <button type="button" class="modal-close" data-dismiss="modalDealer" aria-label="Close">&times;</button>
+      </div>
+      <form id="formDealer">
+        <div class="form-group">
+          <label for="dealerName">Dealer Name</label>
+          <input type="text" id="dealerName" required placeholder="e.g. Agri Solutions">
+        </div>
+        <div class="form-group">
+          <label for="dealerRegion">Region</label>
+          <select id="dealerRegion" required>
+            <option value="">Select region</option>
+            <option value="North">North</option>
+            <option value="South">South</option>
+            <option value="East">East</option>
+            <option value="West">West</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="dealerCity">City</label>
+          <input type="text" id="dealerCity" required placeholder="e.g. Coimbatore">
+        </div>
+        <div class="form-group">
+          <label for="dealerContact">Contact</label>
+          <input type="text" id="dealerContact" required placeholder="e.g. 98765 43210">
+        </div>
+        <div class="form-group">
+          <label for="dealerYtdSales">YTD Sales (₹)</label>
+          <input type="number" id="dealerYtdSales" min="0" value="0" placeholder="0">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-dismiss="modalDealer">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Dealer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Adjust Stock -->
+  <div id="modalStock" class="modal">
+    <div class="modal-backdrop" data-dismiss="modalStock"></div>
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>Adjust Stock</h2>
+        <button type="button" class="modal-close" data-dismiss="modalStock" aria-label="Close">&times;</button>
+      </div>
+      <form id="formStock">
+        <input type="hidden" id="stockSku">
+        <div class="form-group">
+          <label id="stockProductLabel">Product</label>
+          <p class="form-readonly" id="stockProductName">--</p>
+        </div>
+        <div class="form-group">
+          <label>Current Stock</label>
+          <p class="form-readonly" id="stockCurrent">--</p>
+        </div>
+        <div class="form-group">
+          <label for="stockAdjust">Adjust by (use negative to reduce)</label>
+          <input type="number" id="stockAdjust" required placeholder="e.g. 50 or -10">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-dismiss="modalStock">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Stock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="profile-modal-overlay" id="profileModalOverlay" aria-hidden="true">
+    <div class="profile-modal" role="dialog" aria-labelledby="profileModalTitle">
+      <h3 id="profileModalTitle">My Profile</h3>
+      <div class="profile-modal-row">
+        <span class="profile-modal-label">Name</span>
+        <span class="profile-modal-value" id="profileModalName">—</span>
+      </div>
+      <div class="profile-modal-row">
+        <span class="profile-modal-label">Email</span>
+        <span class="profile-modal-value" id="profileModalEmail">—</span>
+      </div>
+      <button type="button" class="profile-modal-close" id="profileModalClose">Close</button>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
