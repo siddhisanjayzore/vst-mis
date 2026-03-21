@@ -7,10 +7,10 @@
 
   // Local development → use same origin
   if (isLocal) {
-    window.AUTH_API_BASE = loc.origin;
+    window.MIS_API_URL  = loc.origin;
     return;
   }
 
   // Deployed frontend → use Render backend
-  window.AUTH_API_BASE = 'https://vst-mis-2.onrender.com';
+  window.MIS_API_URL  = 'https://vst-mis-2.onrender.com';
 })();
